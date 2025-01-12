@@ -1,0 +1,15 @@
+[app]
+app1 ansible_host=127.0.0.1 ansible_port=10221
+app2 ansible_host=127.0.0.1 ansible_port=10222
+
+[prometheus]
+db1 ansible_host=127.0.0.1 ansible_port=10223
+
+[multi:children]
+app
+prometheus 
+
+[all:vars]
+ansible_user=root
+ansible_ssh_private_key_file=ansible-test/ubuntu-ssh-image/id_rsa
+ansible_python_interpreter=/usr/bin/python3.12

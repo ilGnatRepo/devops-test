@@ -1,0 +1,19 @@
+FROM ubuntu:latest
+# 更新包列表并安装必要的软件包
+RUN apt-get update && apt-get install -y \
+    nfs-kernel-server \
+    rpcbind \
+    && apt-get clean
+# 创建共享目录
+RUN mkdir -p /nfsshare && \
+    chown nobody:nogroup /nfsshare && \
+    chmod 777 /nfsshare
+# 配置访问策略
+RUN echo "/nfsshare *(rw,async,no_subtree_check,insecure,no_root_squash)" > /etc/exports
+# 复制启动脚本到容器中
+COPY nfsd.sh /usr/bin/nfsd.sh
+RUN chmod +x /usr/bin/nfsd.sh
+# 暴露 NFS 和 RPC 端口
+EXPOSE 2049 111 20048
+# 启动 NFS 服务
+CMD ["/usr/bin/nfsd.sh"]

@@ -1,0 +1,39 @@
+---
+- name: Run a Node.js service.
+  hosts: all
+  become: true
+
+  vars:
+    node_apps_location: /usr/local/opt/node
+
+  roles:
+    - nodejs
+
+  tasks:
+
+    - name: Ensure Node.js app folder exists.
+      ansible.builtin.file:
+        path: "{{ node_apps_location }}"
+        state: directory
+        mode: "644"
+
+    - name: Copy example Node.js app to server.
+      ansible.builtin.copy:
+        src: app
+        dest: "{{ node_apps_location }}"
+        mode: "644"
+
+    - name: Install app denpendencies defined in package.json.
+      community.general.npm:
+        path: "{{ node_apps_location }}/app"
+
+    - name: Check list of running Node.js apps. 
+      command: forever list 
+      register: forever_list
+      changed_when: false
+
+    - name: Start example Node.js app. 
+      command: "forever start {{ node_apps_location }}/app/app.js"
+      when: "forever_list.stdout.find(node_apps_location + '/app/app.js') == -1"
+
+

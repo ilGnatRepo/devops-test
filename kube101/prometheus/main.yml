@@ -1,0 +1,37 @@
+--- 
+- name: Run a Prometheus service.
+  hosts: prometheus
+  become: true 
+
+  vars:
+    prometheus_apps_location: /usr/local/opt/prometheus
+
+  tasks:
+    - name: apt Update.
+      apt:
+        update_cache: true 
+        state: present 
+    
+    - name: Ensure Prometheus app folder exists. 
+      file:
+        path: "{{ prometheus_apps_location }}"
+        state: directory 
+        mode: "0644" 
+
+    - name: Download the Prometheus package. 
+      get_url:
+        url: https://mirrors.tuna.tsinghua.edu.cn/github-release/prometheus/prometheus/3.0.1%20_%202024-11-28/prometheus-3.0.1.linux-amd64.tar.gz
+        dest: "{{ prometheus_apps_location }}"
+
+    - name: Unpack the Prometheus package.
+      unarchive:
+        src: "{{ prometheus_apps_location }}/prometheus-3.0.1.linux-amd64.tar.gz"
+        dest: "{{ prometheus_apps_location }}"
+        remote_src: true
+
+    - name: starting Prometheus. 
+      shell: |
+        local_path="{{ prometheus_apps_location }}"
+        /bin/bash -c "cd $local_path/prometheus-3.0.1.linux-amd64 && ./prometheus --config.file=prometheus.yml &"
+
+    

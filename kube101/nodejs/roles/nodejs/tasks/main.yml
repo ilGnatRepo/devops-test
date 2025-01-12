@@ -1,0 +1,26 @@
+--- 
+- name: apt update.
+  apt: 
+    update_cache: yes 
+    state: present
+
+- name: Install Node.js and npm.
+  apt: 
+    name: 
+      - nodejs 
+      - npm 
+    state: present 
+
+- name: Install Forever (to run our Node.js app).
+  npm:
+    name: forever 
+    global: yes 
+    state: present 
+
+- name: Get Forever Info.
+  shell: which forever
+  register: result
+
+- name: Check Forever is global installed.
+  debug: 
+    var: result.stdout

@@ -1,0 +1,76 @@
+# 使用minikube配置mysql，初始化账号密码都为drupal
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: drupal
+  labels:
+    app: mysql
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    app: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: drupal
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: 192.168.49.1:5000/mysql:8.0.40-debian
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_DATABASE
+              value: drupal
+            - name: MYSQL_USER
+              value: drupal
+            - name: MYSQL_PASSWORD
+              value: drupal
+            - name: MYSQL_RANDOM_ROOT_PASSWORD
+              value: 'yes'
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+          resources:
+            limits:
+              cpu: '2'
+              memory: '512Mi'
+            requests:
+              cpu: '500m'
+              memory: '256Mi'
+          securityContext:
+            privileged: true
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysql-pvc
+  namespace: drupal 
+spec:
+  accessModes: 
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

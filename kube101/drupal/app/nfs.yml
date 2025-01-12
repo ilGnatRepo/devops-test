@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nfs-server
+  namespace: drupal
+spec:
+  selector:
+    app: nfs-server
+  ports:
+    - name: nfs-tcp-2049
+      protocol: TCP
+      port: 2049
+      targetPort: 2049
+    - name: nfs-tcp-111
+      protocol: TCP
+      port: 111
+      targetPort: 111
+    - name: nfs-tcp-20048
+      protocol: TCP
+      port: 20048
+      targetPort: 20048
+    - name: nfs-udp-111
+      protocol: UDP
+      port: 111
+      targetPort: 111
+    - name: nfs-udp-2049
+      protocol: UDP
+      port: 2049
+      targetPort: 2049
+    - name: nfs-udp-20048
+      protocol: UDP
+      port: 20048
+      targetPort: 20048
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+  namespace: drupal
+spec:
+  selector:
+    matchLabels:
+      app: nfs-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      containers:
+        - name: nfs-server
+          image: 192.168.49.1:5000/nfs-server:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          ports:
+            - name: nfs-tcp-2049
+              containerPort: 2049
+              protocol: TCP
+            - name: nfs-tcp-111
+              containerPort: 111
+              protocol: TCP
+            - name: nfs-tcp-20048
+              containerPort: 20048
+              protocol: TCP
+            - name: nfs-udp-111
+              containerPort: 111
+              protocol: UDP
+            - name: nfs-udp-2049
+              containerPort: 2049
+              protocol: UDP
+            - name: nfs-udp-20048
+              containerPort: 20048
+              protocol: UDP
+          volumeMounts:
+            - name: nfs-pv-storage
+              mountPath: /nfsshare
+      volumes:
+        - name: nfs-pv-storage
+          emptyDir: {}
+      nodeName: minikube

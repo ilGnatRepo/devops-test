@@ -1,0 +1,169 @@
+# apiVersion: apps/v1
+# kind: Deployment 
+# metadata: 
+#   name: ubuntu 
+# spec: 
+#   replicas: 1
+#   selector:
+#     matchLabels: 
+#       app: ubuntu 
+#   template: 
+#     metadata: 
+#       labels: 
+#         app: ubuntu
+#     spec: 
+#       securityContext:
+#         runAsUser: 0
+#         runAsGroup: 0
+#       containers:
+#       - name: app1
+#         image: 192.168.49.1:5000/ubuntu-ssh:v1
+#         securityContext:
+#           privileged: true
+#         ports: 
+#         - containerPort: 10221
+#         command: 
+#         - /bin/bash
+#         - -c
+#         - |
+#           hostname orc-app1.test &&
+#           /usr/sbin/sshd -D -e -p 10221
+#       - name: app2
+#         image: 192.168.49.1:5000/ubuntu-ssh:v1
+#         securityContext:
+#           privileged: true
+#         ports: 
+#         - containerPort: 10222
+#         command: 
+#         - /bin/bash
+#         - -c
+#         - |
+#           hostname orc-app2.test &&
+#           /usr/sbin/sshd -D -e -p 10222
+#       - name: db
+#         image: 192.168.49.1:5000/ubuntu-ssh:v1
+#         securityContext:
+#           privileged: true
+#         ports: 
+#         - containerPort: 10223
+#         command: 
+#         - /bin/bash
+#         - -c
+#         - |
+#           hostname orc-db.test &&
+#           /usr/sbin/sshd -D -e -p 10223
+--- 
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: orc-app1
+  labels:
+    app: orc-app1
+spec: 
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+  containers:
+  - name: app1
+    image: 192.168.49.1:5000/ubuntu-ssh:v1
+    securityContext:
+      privileged: true
+    ports: 
+    - containerPort: 10221
+    command: 
+    - /bin/bash
+    - -c
+    - |
+      hostname orc-app1.test &&
+      /usr/sbin/sshd -D -e -p 10221
+---
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: orc-app2
+  labels:
+    app: orc-app2
+spec: 
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+  containers:
+  - name: app2
+    image: 192.168.49.1:5000/ubuntu-ssh:v1
+    securityContext:
+      privileged: true
+    ports: 
+    - containerPort: 10222
+    command: 
+    - /bin/bash
+    - -c
+    - |
+      hostname orc-app2.test &&
+      /usr/sbin/sshd -D -e -p 10222
+---
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: orc-db
+  labels:
+    app: orc-db
+spec: 
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
+  containers:
+  - name: db
+    image: 192.168.49.1:5000/ubuntu-ssh:v1
+    securityContext:
+      privileged: true
+    ports: 
+    - containerPort: 10223
+    - containerPort: 9090
+    command: 
+    - /bin/bash
+    - -c
+    - |
+      hostname orc-db.test &&
+      /usr/sbin/sshd -D -e -p 10223
+---
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: orc-app1-service 
+spec: 
+  selector: 
+    app: orc-app1
+  type: LoadBalancer
+  ports: 
+  - name: orc-app1
+    port: 10221
+    targetPort: 10221
+---
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: orc-app2-service 
+spec: 
+  selector: 
+    app: orc-app2
+  type: LoadBalancer
+  ports: 
+  - name: orc-app2
+    port: 10222
+    targetPort: 10222
+---
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: orc-db-service 
+spec: 
+  selector: 
+    app: orc-db
+  type: LoadBalancer
+  ports: 
+  - name: orc-db
+    port: 10223
+    targetPort: 10223
+  - name: orc-db-nodejs
+    port: 9090
+    targetPort: 9090

@@ -1,0 +1,37 @@
+# 新建ansble本地的playbook，目的是构建镜像，minikube image load 镜像
+--- 
+- name: Build Drupal App.
+  hosts: localhost
+
+  tasks:
+    - name: Start Docker service.
+      service: 
+        name: docker 
+        state: started 
+      # become: yes 
+    
+    - name: Build nfs-server Image.
+      shell: |
+        docker build -t nfs-server -f nfs-image/dockerfile.yml nfs-image/
+        docker tag nfs-server:latest 192.168.49.1:5000/nfs-server:latest
+        docker push 192.168.49.1:5000/nfs-server:latest
+    
+    - name: Push mysql Image. 
+      shell: |
+        docker tag mysql:8.0.40-debian 192.168.49.1:5000/mysql:8.0.40-debian
+        docker push 192.168.49.1:5000/mysql:8.0.40-debian
+
+    - name: Push drupal Image. 
+      shell: |
+        docker tag drupal:latest 192.168.49.1:5000/drupal:latest
+        docker push 192.168.49.1:5000/drupal:latest
+
+    # - name: init minikube-m02 ip route.
+    #   shell: minikube ssh -n minikube-m02 'sudo ip route add 10.244.0.0/16 via 192.168.49.2 dev eth0'
+
+    - name: Minikube update nfs.yml
+      shell: |
+        kubectl apply -f app/nfs.yml
+        kubectl apply -f app/mysql.yml
+        kubectl apply -f app/drupal.yml
+
