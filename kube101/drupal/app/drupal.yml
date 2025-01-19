@@ -48,7 +48,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: 10.101.14.211
+    server: nfs-server.drupal.svc.cluster.local
     path: /nfsshare/drupal
     readOnly: false 
   persistentVolumeReclaimPolicy: Retain

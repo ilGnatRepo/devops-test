@@ -1,14 +1,20 @@
-# minikube stop
-docker start registry
+minikube stop
+# docker start registry
 minikube start 
+minikube ssh 'echo "192.168.31.107 registry.local" | sudo tee -a /etc/hosts'
+
+kubectl get svc -n kube-system kube-dns | awk 'NR==2 {print $3}' | \
+xargs -I {} minikube ssh 'sed "/nameserver/d" /etc/resolv.conf | sudo tee /etc/resolv.conf > /dev/null && \
+echo "nameserver {}" | sudo tee -a /etc/resolv.conf'
 
 # minikube start --driver=docker \
 #   --container-runtime=docker \
-#   --image-repository=192.168.49.1:5000 \
-#   --base-image="172.25.118.59:5000/kicbase:v0.0.45" \
-#   --insecure-registry="192.168.49.1:5000" \
+#   --image-repository=registry.local:8000 \
+#   --base-image="registry.local:8000/kicbase:v0.0.45" \
+#   --insecure-registry="registry.local:8000" \
 #   --cache-images=true \
 #   --gpus=all \
+#   --memory=6g \
 #   --force 
 
 # minikube addons enable nvidia-device-plugin --images="NvidiaDevicePlugin=nvidia/k8s-device-plugin:v0.16.2@sha256:e1c677f8f75152e642876d76e48f545ddec9bcccd8cbc4d0a133ff715fad6407"
